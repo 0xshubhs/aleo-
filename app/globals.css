@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Fix: wallet modal overlay was blocking the entire page when closed */
+#wallet-modal-container,
+#wallet-modal-container * {
+  pointer-events: none;
+}
+#wallet-modal-container [role="dialog"],
+#wallet-modal-container [role="dialog"] * {
+  pointer-events: auto;
+}
+
+/* Landing page headline: two lines + circle accent (mobile responsive) */
+.landing-headline {
+  position: relative;
+  word-break: break-word;
+}
+.landing-headline-line {
+  letter-spacing: -0.02em;
+}
+.landing-headline-line:first-child {
+  position: relative;
+  display: inline-block;
+  padding: 0.08em 0.2em;
+}
+@media (min-width: 640px) {
+  .landing-headline-line:first-child {
+    padding: 0.1em 0.35em;
+  }
+}
+.landing-headline-line:first-child::before {
+  content: "";
+  position: absolute;
+  inset: -0.12em -0.15em;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+}
+@media (min-width: 640px) {
+  .landing-headline-line:first-child::before {
+    inset: -0.15em -0.2em;
+  }
+}
+.landing-headline-accent {
+  position: relative;
+  display: inline-block;
+  margin-top: 0.05em;
+}
+.landing-headline-accent::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0.04em;
+  transform: translateX(-50%);
+  width: min(1.2em, 80px);
+  height: 0.15em;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+  z-index: -1;
+}
+@media (min-width: 640px) {
+  .landing-headline-accent::after {
+    height: 0.2em;
+  }
+}

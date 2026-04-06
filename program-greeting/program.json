@@ -1,0 +1,8 @@
+{
+  "program": "greeting.aleo",
+  "version": "1.0.0",
+  "description": "Minimal greeting program for Aleo Scaffold",
+  "license": "MIT",
+  "dependencies": null,
+  "dev_dependencies": null
+}

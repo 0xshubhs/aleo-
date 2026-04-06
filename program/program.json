@@ -1,0 +1,8 @@
+{
+  "program": "onchainbio.aleo",
+  "version": "1.0.0",
+  "description": "OnChainBio - Decentralized Profile Bio Program",
+  "license": "MIT",
+  "dependencies": null,
+  "dev_dependencies": null
+}

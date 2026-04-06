@@ -1,0 +1,8 @@
+program greeting.aleo;
+
+function greet:
+    input r0 as field.private;
+    output r0 as field.private;
+
+constructor:
+    assert.eq edition 0u16;
