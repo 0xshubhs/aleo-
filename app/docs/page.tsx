@@ -67,12 +67,12 @@ const docs: DocSection[] = [
       },
       {
         title: "Aleo & wallet",
-        content: "Leo for smart contracts. Wallet: @demox-labs/aleo-wallet-adapter-react, @demox-labs/aleo-wallet-adapter-reactui, @demox-labs/aleo-wallet-adapter-leo, @demox-labs/aleo-wallet-adapter-base. Network: TestnetBeta.",
+        content: "Leo for smart contracts. Wallet: @provablehq/aleo-wallet-adaptor-react, @provablehq/aleo-wallet-adaptor-react-ui, @provablehq/aleo-wallet-adaptor-shield, @provablehq/aleo-wallet-adaptor-core. Network: Testnet.",
         type: "text",
       },
       {
         title: "Packages (dependencies)",
-        content: "@demox-labs/aleo-wallet-adapter-base ^0.0.23\n@demox-labs/aleo-wallet-adapter-leo ^0.0.25\n@demox-labs/aleo-wallet-adapter-react ^0.0.22\n@demox-labs/aleo-wallet-adapter-reactui ^0.0.36\nnext 16.1.1, react 19.2.3, react-dom 19.2.3",
+        content: "@provablehq/aleo-wallet-adaptor-shield ^0.3.0\n@provablehq/aleo-wallet-adaptor-leo ^0.3.0\n@provablehq/aleo-wallet-adaptor-react ^0.3.0\n@provablehq/aleo-wallet-adaptor-react-ui ^0.3.0\nnext 16.1.1, react 19.2.3, react-dom 19.2.3",
         type: "code",
       },
       { title: "App routes", content: "", type: "heading" },
@@ -160,12 +160,12 @@ const docs: DocSection[] = [
       { title: "useWallet", content: "", type: "heading" },
       {
         title: "Import and usage",
-        content: 'import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";\n\nconst {\n  publicKey,        // connected address or null\n  requestTransaction,\n  requestRecords,\n  connect,\n  disconnect,\n} = useWallet();',
+        content: 'import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";\n\nconst {\n  address,          // connected address or null\n  executeTransaction,\n  requestRecords,\n  connect,\n  disconnect,\n} = useWallet();',
         type: "code",
       },
       {
         title: "Submitting a transaction",
-        content: 'import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";\n\nconst network = WalletAdapterNetwork.TestnetBeta;\nconst tx = Transaction.createTransaction(\n  publicKey,\n  network,\n  "onchainbio.aleo",\n  "register_bio",\n  [stringToField(name), stringToField(bio), "0u64"],\n  150_000\n);\nconst txId = await requestTransaction(tx);',
+        content: 'const result = await executeTransaction({\n  program: "onchainbio.aleo",\n  function: "register_bio",\n  inputs: [stringToField(name), stringToField(bio), "0u64"],\n  fee: 150_000,\n});\nconst txId = result?.transactionId;',
         type: "code",
       },
       {
@@ -283,8 +283,8 @@ const docs: DocSection[] = [
     title: "Hooks & helpers",
     description: "React hooks and UI utilities",
     sections: [
-      { title: "Wallet hooks", content: "useWallet() from @demox-labs/aleo-wallet-adapter-react: publicKey, requestTransaction, requestRecords, connect, disconnect, etc.", type: "text" },
-      { title: "Modal", content: "useWalletModal() from @demox-labs/aleo-wallet-adapter-reactui: visible, setVisible(true/false).", type: "text" },
+      { title: "Wallet hooks", content: "useWallet() from @provablehq/aleo-wallet-adaptor-react: address, executeTransaction, requestRecords, connect, disconnect, etc.", type: "text" },
+      { title: "Modal", content: "useWalletModal() from @provablehq/aleo-wallet-adaptor-react-ui: visible, setVisible(true/false).", type: "text" },
       { title: "Wallet utils (components)", content: "RequestTransaction, RequestRecords, RequestRecordPlaintexts, RequestTransactionHistory, DeployProgram, SignMessage, DecryptMessage, SubscribeToEvents — from app/wallet/utils.", type: "list" },
       { title: "Error handling", content: 'try {\n  const txId = await requestTransaction(tx);\n} catch (e) {\n  const msg = e instanceof Error ? e.message : String(e);\n  setError(msg);\n}', type: "code" },
       { title: "Loading", content: "Use local state: const [loading, setLoading] = useState(false); set before request, clear in finally.", type: "code" },
@@ -364,7 +364,7 @@ export default function DocsPage() {
   const [selectedDoc, setSelectedDoc] = useState(docs[0]);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#FFA977" }}>
+    <div className="min-h-screen bg-background text-foreground">
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-12">
@@ -444,8 +444,8 @@ export default function DocsPage() {
               </div>
             </div>
           </article>
-        </div>
-      </div>
+    </div>
+    </div>
     </div>
   );
 }

@@ -1,0 +1,8 @@
+{
+  "program": "silentbid_v1.aleo",
+  "version": "1.0.0",
+  "description": "SilentBid - Private Sealed-Bid Auction Platform on Aleo",
+  "license": "MIT",
+  "dependencies": null,
+  "dev_dependencies": null
+}

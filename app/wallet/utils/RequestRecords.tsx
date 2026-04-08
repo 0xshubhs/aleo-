@@ -1,12 +1,12 @@
 "use client";
 
-import { WalletNotConnectedError } from "@demox-labs/aleo-wallet-adapter-base";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { WalletNotConnectedError } from "@provablehq/aleo-wallet-adaptor-core";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
 import React, { FC, useCallback } from "react";
 
 interface RequestRecordsProps {
   program?: string;
-  onRecordsReceived?: (records: string[]) => void;
+  onRecordsReceived?: (records: any[]) => void;
   className?: string;
   children?: React.ReactNode;
 }
@@ -17,22 +17,22 @@ export const RequestRecords: FC<RequestRecordsProps> = ({
   className = "",
   children,
 }) => {
-  const { publicKey, requestRecords } = useWallet();
+  const { address, requestRecords } = useWallet();
 
   const onClick = useCallback(async () => {
-    if (!publicKey) throw new WalletNotConnectedError();
+    if (!address) throw new WalletNotConnectedError();
     if (requestRecords) {
       const records = await requestRecords(program);
       console.log("Records: " + records);
-      
+
       if (onRecordsReceived) {
-        onRecordsReceived(records);
+        onRecordsReceived(records as any[]);
       }
     }
-  }, [publicKey, requestRecords, program, onRecordsReceived]);
+  }, [address, requestRecords, program, onRecordsReceived]);
 
   return (
-    <button onClick={onClick} disabled={!publicKey || !requestRecords} className={className}>
+    <button onClick={onClick} disabled={!address || !requestRecords} className={className}>
       {children || "Request Records"}
     </button>
   );

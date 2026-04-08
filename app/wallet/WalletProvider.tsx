@@ -1,16 +1,14 @@
 "use client";
 
 import React, { FC, useMemo, ReactNode } from "react";
-import { WalletProvider as AleoWalletProvider } from "@demox-labs/aleo-wallet-adapter-react";
-import { WalletModalProvider, WalletModal, useWalletModal } from "@demox-labs/aleo-wallet-adapter-reactui";
-import { LeoWalletAdapter } from "@demox-labs/aleo-wallet-adapter-leo";
-import {
-  DecryptPermission,
-  WalletAdapterNetwork,
-} from "@demox-labs/aleo-wallet-adapter-base";
+import { AleoWalletProvider } from "@provablehq/aleo-wallet-adaptor-react";
+import { WalletModalProvider, WalletModal, useWalletModal } from "@provablehq/aleo-wallet-adaptor-react-ui";
+import { ShieldWalletAdapter } from "@provablehq/aleo-wallet-adaptor-shield";
+import { LeoWalletAdapter } from "@provablehq/aleo-wallet-adaptor-leo";
+import { DecryptPermission } from "@provablehq/aleo-wallet-adaptor-core";
+import { Network } from "@provablehq/aleo-types";
 
-// Default styles that can be overridden by your app
-import "@demox-labs/aleo-wallet-adapter-reactui/styles.css";
+import "@provablehq/aleo-wallet-adaptor-react-ui/dist/styles.css";
 
 interface WalletProviderProps {
   children: ReactNode;
@@ -29,11 +27,12 @@ function WalletModalWithContainer() {
 
 export const WalletProvider: FC<WalletProviderProps> = ({ children }) => {
   const wallets = useMemo(
-    () => [
-      new LeoWalletAdapter({
-        appName: "Aleo Demo App",
-      }),
-    ],
+    () => {
+      const list = [new ShieldWalletAdapter()];
+      // Only add Leo Wallet if Shield isn't available
+      try { list.push(new LeoWalletAdapter()); } catch { /* skip */ }
+      return list;
+    },
     []
   );
 
@@ -41,18 +40,16 @@ export const WalletProvider: FC<WalletProviderProps> = ({ children }) => {
     <AleoWalletProvider
       wallets={wallets}
       decryptPermission={DecryptPermission.UponRequest}
-      network={WalletAdapterNetwork.TestnetBeta}
+      network={Network.TESTNET}
       autoConnect={false}
       onError={(error) => {
-        console.error("Wallet provider error:", error);
-        if (error instanceof Error) {
-          console.error("Error message:", error.message);
-          console.error("Error stack:", error.stack);
+        // Suppress "No address returned" — happens when Leo Wallet isn't ready
+        const msg = error instanceof Error ? error.message : String(error);
+        if (msg.includes("No address returned") || msg.includes("not ready")) {
+          console.warn("[Wallet] Connection failed (wallet may not be installed or unlocked):", msg);
+          return;
         }
-        console.error("Error details:", {
-          errorName: error?.constructor?.name,
-          errorMessage: error?.message,
-        });
+        console.error("Wallet provider error:", msg);
       }}
     >
       <WalletModalProvider>

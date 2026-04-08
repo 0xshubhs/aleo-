@@ -1,7 +1,7 @@
 "use client";
 
-import { WalletNotConnectedError } from "@demox-labs/aleo-wallet-adapter-base";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { WalletNotConnectedError } from "@provablehq/aleo-wallet-adaptor-core";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
 import React, { FC, useCallback } from "react";
 
 interface RequestTransactionHistoryProps {
@@ -17,24 +17,24 @@ export const RequestTransactionHistory: FC<RequestTransactionHistoryProps> = ({
   className = "",
   children,
 }) => {
-  const { publicKey, requestTransactionHistory } = useWallet();
+  const { address, requestTransactionHistory } = useWallet();
 
   const onClick = useCallback(async () => {
-    if (!publicKey) throw new WalletNotConnectedError();
+    if (!address) throw new WalletNotConnectedError();
     if (requestTransactionHistory) {
-      const transactions = await requestTransactionHistory(program);
-      console.log("Transactions: " + transactions);
-      
+      const result = await requestTransactionHistory(program);
+      console.log("Transactions: " + JSON.stringify(result));
+
       if (onHistoryReceived) {
-        onHistoryReceived(transactions);
+        onHistoryReceived(result?.transactions || []);
       }
     }
-  }, [publicKey, requestTransactionHistory, program, onHistoryReceived]);
+  }, [address, requestTransactionHistory, program, onHistoryReceived]);
 
   return (
     <button
       onClick={onClick}
-      disabled={!publicKey || !requestTransactionHistory}
+      disabled={!address || !requestTransactionHistory}
       className={className}
     >
       {children || "Request Transaction History"}

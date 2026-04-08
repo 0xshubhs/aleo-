@@ -1,17 +1,12 @@
 "use client";
 
-import {
-  Deployment,
-  WalletAdapterNetwork,
-  WalletNotConnectedError,
-} from "@demox-labs/aleo-wallet-adapter-base";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { WalletNotConnectedError } from "@provablehq/aleo-wallet-adaptor-core";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
 import React, { FC, useCallback } from "react";
 
 interface DeployProgramProps {
   program: string;
   fee?: number;
-  network?: WalletAdapterNetwork;
   onDeployed?: (transactionId: string) => void;
   className?: string;
   children?: React.ReactNode;
@@ -20,30 +15,33 @@ interface DeployProgramProps {
 export const DeployProgram: FC<DeployProgramProps> = ({
   program,
   fee = 4_835_000,
-  network = WalletAdapterNetwork.Testnet,
   onDeployed,
   className = "",
   children,
 }) => {
-  const { publicKey, requestDeploy } = useWallet();
+  const { address, executeDeployment } = useWallet();
 
   const onClick = useCallback(async () => {
-    if (!publicKey) throw new WalletNotConnectedError();
+    if (!address) throw new WalletNotConnectedError();
 
-    const aleoDeployment = new Deployment(publicKey, network, program, fee);
+    if (executeDeployment) {
+      const result = await executeDeployment({
+        program,
+        address,
+        priorityFee: fee,
+        privateFee: false,
+      });
 
-    if (requestDeploy) {
-      // Returns a transaction Id, that can be used to check the status. Note this is not the on-chain transaction id
-      const transactionId = await requestDeploy(aleoDeployment);
-      
+      const transactionId = result?.transactionId || "";
+
       if (onDeployed) {
         onDeployed(transactionId);
       }
     }
-  }, [publicKey, requestDeploy, program, fee, network, onDeployed]);
+  }, [address, executeDeployment, program, fee, onDeployed]);
 
   return (
-    <button onClick={onClick} disabled={!publicKey || !requestDeploy} className={className}>
+    <button onClick={onClick} disabled={!address || !executeDeployment} className={className}>
       {children || "Deploy Program"}
     </button>
   );

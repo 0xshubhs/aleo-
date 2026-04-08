@@ -1,8 +1,7 @@
 "use client";
 
-import { WalletNotConnectedError } from "@demox-labs/aleo-wallet-adapter-base";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
-import { LeoWalletAdapter } from "@demox-labs/aleo-wallet-adapter-leo";
+import { WalletNotConnectedError } from "@provablehq/aleo-wallet-adaptor-core";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
 import React, { FC, useCallback } from "react";
 
 interface SignMessageProps {
@@ -18,26 +17,26 @@ export const SignMessage: FC<SignMessageProps> = ({
   className = "",
   children,
 }) => {
-  const { wallet, publicKey } = useWallet();
+  const { address, signMessage } = useWallet();
 
   const onClick = useCallback(async () => {
-    if (!publicKey) throw new WalletNotConnectedError();
+    if (!address) throw new WalletNotConnectedError();
 
-    const bytes = new TextEncoder().encode(message);
-    const signatureBytes = await (
-      wallet?.adapter as LeoWalletAdapter
-    ).signMessage(bytes);
-    const signature = new TextDecoder().decode(signatureBytes);
-    
-    if (onSigned) {
-      onSigned(signature);
-    } else {
-      alert("Signed message: " + signature);
+    if (signMessage) {
+      const bytes = new TextEncoder().encode(message);
+      const signatureBytes = await signMessage(bytes);
+      const signature = signatureBytes ? new TextDecoder().decode(signatureBytes) : "";
+
+      if (onSigned) {
+        onSigned(signature);
+      } else {
+        alert("Signed message: " + signature);
+      }
     }
-  }, [wallet, publicKey, message, onSigned]);
+  }, [address, signMessage, message, onSigned]);
 
   return (
-    <button onClick={onClick} disabled={!publicKey} className={className}>
+    <button onClick={onClick} disabled={!address} className={className}>
       {children || "Sign message"}
     </button>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
 import React, { FC, useEffect, useRef, ReactNode } from "react";
 
 interface SubscribeToEventsProps {
@@ -12,22 +12,19 @@ export const SubscribeToEvents: FC<SubscribeToEventsProps> = ({
   onAccountChange,
   children,
 }) => {
-  const { wallet, publicKey } = useWallet();
-  const previousPublicKey = useRef<string | null>(null);
+  const { wallet, address } = useWallet();
+  const previousAddress = useRef<string | null>(null);
 
-  // Watch for publicKey changes to detect account changes
   useEffect(() => {
-    if (previousPublicKey.current !== null && previousPublicKey.current !== publicKey) {
-      // Handle account change
+    if (previousAddress.current !== null && previousAddress.current !== address) {
       if (onAccountChange) {
         onAccountChange();
       }
-      console.log("Account changed from", previousPublicKey.current, "to", publicKey);
+      console.log("Account changed from", previousAddress.current, "to", address);
     }
-    previousPublicKey.current = publicKey || null;
-  }, [publicKey, onAccountChange]);
+    previousAddress.current = address || null;
+  }, [address, onAccountChange]);
 
-  // Listen to connect/disconnect events from the adapter
   useEffect(() => {
     if (wallet?.adapter) {
       const handleConnect = () => {
@@ -42,12 +39,10 @@ export const SubscribeToEvents: FC<SubscribeToEventsProps> = ({
         console.error("Wallet error:", error);
       };
 
-      // Listen to standard adapter events
       wallet.adapter.on("connect", handleConnect);
       wallet.adapter.on("disconnect", handleDisconnect);
       wallet.adapter.on("error", handleError);
 
-      // Cleanup
       return () => {
         wallet.adapter.off("connect", handleConnect);
         wallet.adapter.off("disconnect", handleDisconnect);

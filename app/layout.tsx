@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import "@demox-labs/aleo-wallet-adapter-reactui/styles.css";
+import "@provablehq/aleo-wallet-adaptor-react-ui/dist/styles.css";
 import { ClientWalletProvider } from "./wallet/ClientWalletProvider";
 
 const geistSans = Geist({
@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aleo-Scaffold",
-  description: "Build private, decentralized applications on Aleo blockchain",
+  title: "SilentBid — Privacy-Focused Sealed-Bid Auctions on Aleo",
+  description: "SilentBid uses Aleo zero-knowledge proofs for sealed-bid privacy. Fair, MEV-resistant auctions onchain.",
 };
 
 export default function RootLayout({
@@ -25,9 +25,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
         <ClientWalletProvider>{children}</ClientWalletProvider>
       </body>

@@ -1,7 +1,7 @@
 "use client";
 
-import { WalletNotConnectedError } from "@demox-labs/aleo-wallet-adapter-base";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { WalletNotConnectedError } from "@provablehq/aleo-wallet-adaptor-core";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
 import React, { FC, useCallback } from "react";
 
 interface RequestRecordPlaintextsProps {
@@ -17,24 +17,25 @@ export const RequestRecordPlaintexts: FC<RequestRecordPlaintextsProps> = ({
   className = "",
   children,
 }) => {
-  const { publicKey, requestRecordPlaintexts } = useWallet();
+  const { address, requestRecords } = useWallet();
 
   const onClick = useCallback(async () => {
-    if (!publicKey) throw new WalletNotConnectedError();
-    if (requestRecordPlaintexts) {
-      const records = await requestRecordPlaintexts(program);
+    if (!address) throw new WalletNotConnectedError();
+    if (requestRecords) {
+      // Request records with plaintext included
+      const records = await requestRecords(program, true);
       console.log("Records: " + records);
-      
+
       if (onRecordsReceived) {
-        onRecordsReceived(records);
+        onRecordsReceived(records as any[]);
       }
     }
-  }, [publicKey, requestRecordPlaintexts, program, onRecordsReceived]);
+  }, [address, requestRecords, program, onRecordsReceived]);
 
   return (
     <button
       onClick={onClick}
-      disabled={!publicKey || !requestRecordPlaintexts}
+      disabled={!address || !requestRecords}
       className={className}
     >
       {children || "Request Records Plaintexts"}
