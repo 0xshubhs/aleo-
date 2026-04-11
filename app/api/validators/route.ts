@@ -8,7 +8,7 @@ export async function GET() {
     const committee = await getCommittee();
     let members = committee?.members ?? [];
     if (!members.length) {
-      const BASE = process.env.ALEO_API_BASE || "https://api.explorer.provable.com/v1/mainnet";
+      const BASE = process.env.ALEO_API_BASE || "https://api.explorer.provable.com/v1/testnet";
       const res = await fetch(`${BASE}/committee/latest`, { headers: { Accept: "application/json" }, cache: "no-store" });
       if (res.ok) {
         const data = (await res.json()) as { members?: Record<string, unknown> };

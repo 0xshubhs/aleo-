@@ -1,5 +1,5 @@
 {
-  "program": "silentbid_v1.aleo",
+  "program": "silentbid_v2.aleo",
   "structs": [
     {
       "path": [
@@ -162,7 +162,7 @@
           "path": [
             "AuctionInfo"
           ],
-          "program": "silentbid_v1.aleo"
+          "program": "silentbid_v2.aleo"
         }
       }
     },
@@ -325,7 +325,7 @@
               "path": [
                 "AuctionReceipt"
               ],
-              "program": "silentbid_v1.aleo"
+              "program": "silentbid_v2.aleo"
             }
           },
           "mode": "None"
@@ -388,7 +388,7 @@
               "path": [
                 "Bid"
               ],
-              "program": "silentbid_v1.aleo"
+              "program": "silentbid_v2.aleo"
             }
           },
           "mode": "None"
@@ -410,7 +410,7 @@
               "path": [
                 "Bid"
               ],
-              "program": "silentbid_v1.aleo"
+              "program": "silentbid_v2.aleo"
             }
           },
           "mode": "None"
@@ -423,7 +423,7 @@
               "path": [
                 "Bid"
               ],
-              "program": "silentbid_v1.aleo"
+              "program": "silentbid_v2.aleo"
             }
           },
           "mode": "None"

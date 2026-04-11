@@ -6,7 +6,7 @@
 import { AleoNetworkClient } from "@provablehq/sdk";
 
 const BASE = (() => {
-  const raw = process.env.ALEO_API_BASE || "https://api.explorer.provable.com/v1/mainnet";
+  const raw = process.env.ALEO_API_BASE || "https://api.explorer.provable.com/v1/testnet";
   return raw.trim().replace(/\/+$/, "")
     .replace(/\/testnet\/testnet/g, "/testnet")
     .replace(/\/mainnet\/mainnet/g, "/mainnet");

@@ -4,7 +4,7 @@
  */
 
 const V2_BASE =
-  process.env.ALEO_API_V2 || "https://api.explorer.provable.com/v2/mainnet";
+  process.env.ALEO_API_V2 || "https://api.explorer.provable.com/v2/testnet";
 
 async function fetchV2<T>(path: string): Promise<T> {
   const url = `${V2_BASE}${path.startsWith("/") ? path : `/${path}`}`;

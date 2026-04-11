@@ -70,11 +70,13 @@ export function AuctionList({ filter }: { filter?: AuctionStatus }) {
           ])
           if (info) {
             const s = getAuctionStatus(info, height)
+            const listStatus: AuctionStatus =
+              s === "active" ? "active" : "ended"
             results.push({
               ...info,
               bid_count: bidCount,
               highest_bid: highestBid,
-              status: s === "reveal" ? "ended" as AuctionStatus : s === "settled" ? "ended" as AuctionStatus : s as AuctionStatus,
+              status: listStatus,
             })
           }
         } catch { /* skip */ }

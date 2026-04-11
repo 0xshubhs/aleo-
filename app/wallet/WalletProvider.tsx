@@ -28,7 +28,7 @@ function WalletModalWithContainer() {
 export const WalletProvider: FC<WalletProviderProps> = ({ children }) => {
   const wallets = useMemo(
     () => {
-      const list = [new ShieldWalletAdapter()];
+      const list: Array<ShieldWalletAdapter | LeoWalletAdapter> = [new ShieldWalletAdapter()];
       // Only add Leo Wallet if Shield isn't available
       try { list.push(new LeoWalletAdapter()); } catch { /* skip */ }
       return list;
@@ -47,6 +47,13 @@ export const WalletProvider: FC<WalletProviderProps> = ({ children }) => {
         const msg = error instanceof Error ? error.message : String(error);
         if (msg.includes("No address returned") || msg.includes("not ready")) {
           console.warn("[Wallet] Connection failed (wallet may not be installed or unlocked):", msg);
+          return;
+        }
+        if (msg.includes("Configured network")) {
+          console.warn("[Wallet] Network mismatch — switch your wallet to TESTNET and reconnect.");
+          if (typeof window !== "undefined") {
+            window.alert("Please switch your Aleo wallet network to TESTNET, then reconnect.");
+          }
           return;
         }
         console.error("Wallet provider error:", msg);

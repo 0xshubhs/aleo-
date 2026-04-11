@@ -1,14 +1,13 @@
-// SilentBid — Private Sealed-Bid Auction with Escrowed Deposits
+// SilentBid v2 — Sealed-bid auction escrowed in silentbid_usdc.aleo.
 //
-// Privacy: bid amounts live inside private Bid records. Every bidder escrows
-// the same public max_bid into the program's credits balance, so the public
-// transfers leak nothing about real bid magnitude until reveal.
+// Same commit/reveal/pull-claim flow as silentbid_v1.aleo, but every payment moves
+// test USDC instead of native credits. Every bidder escrows the same public max_bid,
+// so on-chain transfers leak nothing about real bid magnitude until reveal.
 
-import credits.aleo;
+import silentbid_usdc.aleo;
 
-program silentbid_v1.aleo {
+program silentbid_v2.aleo {
 
-    // ─── Records ─────────────────────────────────────────────
     record Bid {
         owner: address,
         auction_id: field,
@@ -25,7 +24,6 @@ program silentbid_v1.aleo {
         max_bid: u64,
     }
 
-    // ─── Structs ─────────────────────────────────────────────
     struct AuctionInfo {
         creator: address,
         item_name: field,
@@ -48,7 +46,6 @@ program silentbid_v1.aleo {
         bidder: address,
     }
 
-    // ─── Mappings ────────────────────────────────────────────
     mapping auctions: field => AuctionInfo;
     mapping commitments: field => bool;
     mapping highest_bids: field => u64;
@@ -56,12 +53,10 @@ program silentbid_v1.aleo {
     mapping bid_counts: field => u64;
     mapping auction_counter: u8 => u64;
 
-    // Per-(auction, bidder) — key = hash(BidKey)
     mapping escrowed: field => u64;
     mapping revealed: field => bool;
     mapping refunded: field => bool;
 
-    // Per-auction
     mapping creator_paid: field => bool;
 
     @noupgrade
@@ -115,7 +110,7 @@ program silentbid_v1.aleo {
         });
     }
 
-    // ═══ 2. Place sealed bid — escrows max_bid ═══════════════
+    // ═══ 2. Place sealed bid — escrows max_bid in USDC ═══════
     fn place_bid(
         auction_id: field,
         amount: u64,
@@ -144,8 +139,8 @@ program silentbid_v1.aleo {
             bidder: self.caller,
         });
 
-        let esc: Final = credits.aleo::transfer_public_as_signer(
-            silentbid_v1.aleo,
+        let esc: Final = silentbid_usdc.aleo::transfer_public_as_signer(
+            silentbid_v2.aleo,
             max_bid,
         );
 
@@ -213,7 +208,7 @@ program silentbid_v1.aleo {
         });
     }
 
-    // ═══ 4. Settle (close auction, no transfers) ═════════════
+    // ═══ 4. Settle ═══════════════════════════════════════════
     fn settle_auction(auction_id: field) -> Final {
         return final {
             let info: AuctionInfo = auctions.get(auction_id);
@@ -232,12 +227,12 @@ program silentbid_v1.aleo {
         };
     }
 
-    // ═══ 5a. Loser pulls full refund ═════════════════════════
+    // ═══ 5a. Loser pulls full refund in USDC ═════════════════
     fn claim_loser_refund(
         auction_id: field,
         refund_amount: u64,
     ) -> Final {
-        let refund_f: Final = credits.aleo::transfer_public(self.caller, refund_amount);
+        let refund_f: Final = silentbid_usdc.aleo::transfer_public(self.caller, refund_amount);
         let bid_key: field = BHP256::hash_to_field(BidKey {
             auction_id: auction_id,
             bidder: self.caller,
@@ -262,7 +257,7 @@ program silentbid_v1.aleo {
         auction_id: field,
         overpay: u64,
     ) -> Final {
-        let refund_f: Final = credits.aleo::transfer_public(self.caller, overpay);
+        let refund_f: Final = silentbid_usdc.aleo::transfer_public(self.caller, overpay);
         let bid_key: field = BHP256::hash_to_field(BidKey {
             auction_id: auction_id,
             bidder: self.caller,
@@ -287,7 +282,7 @@ program silentbid_v1.aleo {
         auction_id: field,
         winning: u64,
     ) -> Final {
-        let pay_f: Final = credits.aleo::transfer_public(self.caller, winning);
+        let pay_f: Final = silentbid_usdc.aleo::transfer_public(self.caller, winning);
         let caller: address = self.caller;
 
         return final {
@@ -307,7 +302,7 @@ program silentbid_v1.aleo {
         bidder: address,
         amount: u64,
     ) -> Final {
-        let pay_f: Final = credits.aleo::transfer_public(self.caller, amount);
+        let pay_f: Final = silentbid_usdc.aleo::transfer_public(self.caller, amount);
         let bid_key: field = BHP256::hash_to_field(BidKey {
             auction_id: auction_id,
             bidder: bidder,

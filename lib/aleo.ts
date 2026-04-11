@@ -36,8 +36,11 @@ export function fieldToString(field: string): string {
 export const PROGRAM_ID = "onchainbio.aleo";
 export const CREDITS_PROGRAM_ID = "credits.aleo";
 export const GREETING_PROGRAM_ID = "greeting.aleo";
-export const SILENTBID_PROGRAM_ID = "silentbid_v1.aleo";
-export const SILENTBID_FEE = 150_000; // microcredits
+export const SILENTBID_PROGRAM_ID =
+  process.env.NEXT_PUBLIC_SILENTBID_PROGRAM_ID || "silentbid_v2.aleo";
+export const SILENTBID_USDC_PROGRAM_ID =
+  process.env.NEXT_PUBLIC_SILENTBID_USDC_PROGRAM_ID || "silentbid_usdc.aleo";
+export const SILENTBID_FEE = 200_000; // microcredits
 
 /**
  * Extract one level of message from an unknown value (no recursion).

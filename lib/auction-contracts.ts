@@ -1,8 +1,14 @@
-// Aleo auction contracts config (replaces Ethereum auction-contracts)
-// This module provides types and constants for the silentbid_v1.aleo program
+// SilentBid v2 + silentbid_usdc.aleo config.
+// Program IDs can be overridden via NEXT_PUBLIC_* env vars at build time.
 
-export const SILENTBID_PROGRAM_ID = "silentbid_v1.aleo"
-export const SILENTBID_FEE = 150_000 // microcredits
+export const SILENTBID_PROGRAM_ID =
+  process.env.NEXT_PUBLIC_SILENTBID_PROGRAM_ID || "silentbid_v2.aleo"
+
+export const SILENTBID_USDC_PROGRAM_ID =
+  process.env.NEXT_PUBLIC_SILENTBID_USDC_PROGRAM_ID || "silentbid_usdc.aleo"
+
+// Default fee in microcredits applied to every transition
+export const SILENTBID_FEE = 200_000
 
 export type AuctionStatus = "active" | "upcoming" | "ended"
 
@@ -10,7 +16,9 @@ export interface AuctionInfo {
   creator: string
   item_name: string
   min_bid: number
+  max_bid: number
   end_block: number
+  grace_block: number
   is_settled: boolean
   auction_id: string
 }

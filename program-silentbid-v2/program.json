@@ -1,12 +1,12 @@
 {
-  "program": "silentbid_v1.aleo",
-  "version": "1.0.0",
-  "description": "SilentBid - Private Sealed-Bid Auction Platform on Aleo",
+  "program": "silentbid_v2.aleo",
+  "version": "0.1.0",
+  "description": "",
   "license": "MIT",
   "leo": "4.0.0",
   "dependencies": [
     {
-      "name": "credits.aleo",
+      "name": "silentbid_usdc.aleo",
       "location": "network",
       "path": null,
       "edition": null

@@ -1,5 +1,5 @@
-import credits.aleo;
-program silentbid_v1.aleo;
+import silentbid_usdc.aleo;
+program silentbid_v2.aleo;
 
 record Bid:
     owner as address.private;
@@ -88,7 +88,7 @@ function create_auction:
     cast self.caller r8 r0 r1 r2 into r9 as AuctionReceipt.record;
     async create_auction r8 r3 self.caller r0 r1 r2 r4 into r10;
     output r9 as AuctionReceipt.record;
-    output r10 as silentbid_v1.aleo/create_auction.future;
+    output r10 as silentbid_v2.aleo/create_auction.future;
 
 finalize create_auction:
     input r0 as field.public;
@@ -123,13 +123,13 @@ function place_bid:
     cast self.caller r0 r1 r2 false into r7 as Bid.record;
     cast r0 self.caller into r8 as BidKey;
     hash.bhp256 r8 into r9 as field;
-    call credits.aleo/transfer_public_as_signer silentbid_v1.aleo r3 into r10;
+    call silentbid_usdc.aleo/transfer_public_as_signer silentbid_v2.aleo r3 into r10;
     async place_bid r10 r0 r3 r9 r6 into r11;
     output r7 as Bid.record;
-    output r11 as silentbid_v1.aleo/place_bid.future;
+    output r11 as silentbid_v2.aleo/place_bid.future;
 
 finalize place_bid:
-    input r0 as credits.aleo/transfer_public_as_signer.future;
+    input r0 as silentbid_usdc.aleo/transfer_public_as_signer.future;
     input r1 as field.public;
     input r2 as u64.public;
     input r3 as field.public;
@@ -165,7 +165,7 @@ function reveal_bid:
     hash.bhp256 r5 into r6 as field;
     async reveal_bid r0.auction_id r3 r0.amount r6 self.caller into r7;
     output r4 as Bid.record;
-    output r7 as silentbid_v1.aleo/reveal_bid.future;
+    output r7 as silentbid_v2.aleo/reveal_bid.future;
 
 finalize reveal_bid:
     input r0 as field.public;
@@ -200,7 +200,7 @@ finalize reveal_bid:
 function settle_auction:
     input r0 as field.private;
     async settle_auction r0 into r1;
-    output r1 as silentbid_v1.aleo/settle_auction.future;
+    output r1 as silentbid_v2.aleo/settle_auction.future;
 
 finalize settle_auction:
     input r0 as field.public;
@@ -215,14 +215,14 @@ finalize settle_auction:
 function claim_loser_refund:
     input r0 as field.private;
     input r1 as u64.private;
-    call credits.aleo/transfer_public self.caller r1 into r2;
+    call silentbid_usdc.aleo/transfer_public self.caller r1 into r2;
     cast r0 self.caller into r3 as BidKey;
     hash.bhp256 r3 into r4 as field;
     async claim_loser_refund r2 r0 r4 self.caller r1 into r5;
-    output r5 as silentbid_v1.aleo/claim_loser_refund.future;
+    output r5 as silentbid_v2.aleo/claim_loser_refund.future;
 
 finalize claim_loser_refund:
-    input r0 as credits.aleo/transfer_public.future;
+    input r0 as silentbid_usdc.aleo/transfer_public.future;
     input r1 as field.public;
     input r2 as field.public;
     input r3 as address.public;
@@ -244,14 +244,14 @@ finalize claim_loser_refund:
 function claim_winner_overpay:
     input r0 as field.private;
     input r1 as u64.private;
-    call credits.aleo/transfer_public self.caller r1 into r2;
+    call silentbid_usdc.aleo/transfer_public self.caller r1 into r2;
     cast r0 self.caller into r3 as BidKey;
     hash.bhp256 r3 into r4 as field;
     async claim_winner_overpay r2 r0 r4 self.caller r1 into r5;
-    output r5 as silentbid_v1.aleo/claim_winner_overpay.future;
+    output r5 as silentbid_v2.aleo/claim_winner_overpay.future;
 
 finalize claim_winner_overpay:
-    input r0 as credits.aleo/transfer_public.future;
+    input r0 as silentbid_usdc.aleo/transfer_public.future;
     input r1 as field.public;
     input r2 as field.public;
     input r3 as address.public;
@@ -274,12 +274,12 @@ finalize claim_winner_overpay:
 function claim_creator_payment:
     input r0 as field.private;
     input r1 as u64.private;
-    call credits.aleo/transfer_public self.caller r1 into r2;
+    call silentbid_usdc.aleo/transfer_public self.caller r1 into r2;
     async claim_creator_payment r2 r0 self.caller r1 into r3;
-    output r3 as silentbid_v1.aleo/claim_creator_payment.future;
+    output r3 as silentbid_v2.aleo/claim_creator_payment.future;
 
 finalize claim_creator_payment:
-    input r0 as credits.aleo/transfer_public.future;
+    input r0 as silentbid_usdc.aleo/transfer_public.future;
     input r1 as field.public;
     input r2 as address.public;
     input r3 as u64.public;
@@ -298,14 +298,14 @@ function forfeit_nonrevealer:
     input r0 as field.private;
     input r1 as address.private;
     input r2 as u64.private;
-    call credits.aleo/transfer_public self.caller r2 into r3;
+    call silentbid_usdc.aleo/transfer_public self.caller r2 into r3;
     cast r0 r1 into r4 as BidKey;
     hash.bhp256 r4 into r5 as field;
     async forfeit_nonrevealer r3 r0 self.caller r5 r2 into r6;
-    output r6 as silentbid_v1.aleo/forfeit_nonrevealer.future;
+    output r6 as silentbid_v2.aleo/forfeit_nonrevealer.future;
 
 finalize forfeit_nonrevealer:
-    input r0 as credits.aleo/transfer_public.future;
+    input r0 as silentbid_usdc.aleo/transfer_public.future;
     input r1 as field.public;
     input r2 as address.public;
     input r3 as field.public;

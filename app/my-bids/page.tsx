@@ -97,7 +97,7 @@ export default function MyBidsPage() {
                             <div className="flex justify-between"><span className="text-muted-foreground text-[10px] uppercase">Auction</span><span className="text-foreground text-xs">{parsed.auction_id}</span></div>
                           )}
                           {parsed.amount !== null && (
-                            <div className="flex justify-between"><span className="text-muted-foreground text-[10px] uppercase">Amount</span><span className="text-accent">{parsed.amount.toLocaleString()} microcredits</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground text-[10px] uppercase">Amount</span><span className="text-accent">{parsed.amount.toLocaleString()} µUSDC</span></div>
                           )}
                         </div>
                         <details className="mt-3">
