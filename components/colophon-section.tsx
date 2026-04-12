@@ -81,12 +81,12 @@ export function ColophonSection() {
 
       {/* Multi-column layout */}
       <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 md:gap-12">
-        {/* Design */}
+        {/* Project */}
         <div className="col-span-1">
           <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Project</h4>
           <ul className="space-y-2">
             <li className="font-mono text-xs text-foreground/80">SilentBid</li>
-            <li className="font-mono text-xs text-foreground/80">Privacy CCA</li>
+            <li className="font-mono text-xs text-foreground/80">ZK Sealed-Bid Auctions</li>
           </ul>
         </div>
 
@@ -94,10 +94,10 @@ export function ColophonSection() {
         <div className="col-span-1">
           <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Stack</h4>
           <ul className="space-y-2">
+            <li className="font-mono text-xs text-foreground/80">Aleo / Leo</li>
             <li className="font-mono text-xs text-foreground/80">Next.js</li>
             <li className="font-mono text-xs text-foreground/80">Tailwind CSS</li>
-            <li className="font-mono text-xs text-foreground/80">Uniswap CCA</li>
-            <li className="font-mono text-xs text-foreground/80">Chainlink CRE</li>
+            <li className="font-mono text-xs text-foreground/80">Provable SDK</li>
           </ul>
         </div>
 
@@ -106,8 +106,8 @@ export function ColophonSection() {
           <h4 className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Typography</h4>
           <ul className="space-y-2">
             <li className="font-mono text-xs text-foreground/80">Bebas Neue</li>
-            <li className="font-mono text-xs text-foreground/80">Inter</li>
-            <li className="font-mono text-xs text-foreground/80">Geist Mono</li>
+            <li className="font-mono text-xs text-foreground/80">IBM Plex Sans</li>
+            <li className="font-mono text-xs text-foreground/80">IBM Plex Mono</li>
           </ul>
         </div>
 
@@ -161,7 +161,7 @@ export function ColophonSection() {
         <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
           © 2025 SilentBid. All rights reserved.
         </p>
-        <p className="font-mono text-[10px] text-muted-foreground">Privacy-first CCA. Sealed-bid token launches.</p>
+        <p className="font-mono text-[10px] text-muted-foreground">ZK sealed-bid auctions on Aleo. Built with Leo.</p>
       </div>
     </section>
   )

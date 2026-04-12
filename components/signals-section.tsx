@@ -10,28 +10,28 @@ gsap.registerPlugin(ScrollTrigger)
 const signals = [
   {
     date: "2025.06.10",
-    title: "Sealed Bids",
-    note: "EIP-712 signed bid; only commitment onchain. CRE stores the confidential message and finalizes after the blind deadline.",
+    title: "ZK Sealed Bids",
+    note: "Bids are private Aleo records. A BHP256 commitment is stored on-chain, but bid amounts and bidder identities stay invisible until reveal.",
   },
   {
     date: "2025.05.28",
     title: "MEV Resistance",
-    note: "Eliminates pre-bid sniping and front-running. Bid price and amount stay in CRE until close.",
+    note: "No front-running or bid sniping. Every bidder escrows the same max_bid in test USDC — public transfers leak nothing about the real bid amount.",
   },
   {
     date: "2025.05.15",
-    title: "CCA Fork",
-    note: "Built on Uniswap's Continuous Clearing Auction for fair, continuous price discovery.",
+    title: "Leo Smart Contracts",
+    note: "Auction logic written in Leo, compiled to Aleo instructions. ZK proofs verify bid validity without exposing private data.",
   },
   {
     date: "2025.04.30",
-    title: "Liquidity Bootstrapping",
-    note: "Bids integrate over time; market-clearing price seeds a Uniswap pool at close.",
+    title: "Commit-Reveal Flow",
+    note: "Place sealed bids during the active phase. After the deadline, reveal your bid to compete. Grace period ensures fairness before settlement.",
   },
   {
     date: "2025.04.12",
-    title: "CRE + EIP-712",
-    note: "Chainlink CRE verifies EIP-712 and keeps bid data confidential. CRE workflow forwards to CCA at settlement.",
+    title: "On-Chain Settlement",
+    note: "Winner pays the winning bid. Losers get full refunds. Overpay returned to the winner. All enforced by ZK-verified Leo transitions.",
   },
 ]
 
@@ -136,7 +136,7 @@ export function SignalsSection() {
       {/* Section header */}
       <div ref={headerRef} className="mb-16 pr-6 md:pr-12">
         <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">01 / Features</span>
-        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">WHY BLINDPOOL</h2>
+        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">WHY SILENTBID</h2>
       </div>
 
       {/* Horizontal scroll container */}

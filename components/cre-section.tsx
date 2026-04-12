@@ -9,26 +9,26 @@ gsap.registerPlugin(ScrollTrigger)
 const workflows = [
   {
     step: "01",
-    name: "Bid Ingestion",
-    route: "/api/cre/bid",
-    offchain: "Verify EIP-712 signature, compute keccak256 commitment, store bid privately. Optional compliance check via Confidential HTTP.",
-    onchain: "submitBlindBid(commitment) + msg.value escrow. Only the hash touches the chain.",
+    name: "Place Sealed Bid",
+    route: "place_bid(auction_id, amount, salt, max_bid)",
+    private: "Your bid amount and salt are stored as a private Aleo record in your wallet. Only you can decrypt it. A BHP256 commitment binds your bid cryptographically.",
+    onchain: "Escrows max_bid tUSDC into the program via silentbid_usdc.aleo. Commitment hash stored publicly. Bid count incremented.",
     accent: "accent",
   },
   {
     step: "02",
-    name: "Finalize",
-    route: "/api/cre/finalize",
-    offchain: "Load all sealed bids, run uniform-price discovery (sort by maxPrice desc), compute clearing price and winner allocations.",
-    onchain: "forwardBidsToCCA(clearingPrice, bids) — one batched transaction forwards all bids into CCA.",
+    name: "Reveal Bid",
+    route: "reveal_bid(bid_record)",
+    private: "Your wallet provides the private Bid record. The ZK proof verifies the commitment matches without exposing inputs to other users.",
+    onchain: "Bid amount becomes public. If higher than current highest, updates highest_bids and highest_bidders mappings. Revealed flag set on-chain.",
     accent: "amber-500",
   },
   {
     step: "03",
-    name: "Settle",
-    route: "/api/cre/settle",
-    offchain: "Build settlement plan from allocations: winner payouts, excess-escrow refunds, loser full refunds.",
-    onchain: "Execute transfers via compliant private calls. Individual payouts stay confidential.",
+    name: "Settle & Claim",
+    route: "settle_auction / claim_* / forfeit_nonrevealer",
+    private: "Settlement is permissionless — anyone can trigger it after the grace period. Claims are pull-based: each participant claims their own funds.",
+    onchain: "Winner pays winning bid, gets overpay refunded. Losers get full max_bid refund. Creator receives winning amount. Non-revealers forfeit escrow to creator.",
     accent: "emerald-500",
   },
 ]
@@ -80,14 +80,14 @@ export function CreSection() {
       <div ref={headerRef} className="mb-16 flex items-end justify-between">
         <div>
           <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">
-            03 / Chainlink CRE
+            03 / Aleo ZK Flow
           </span>
           <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">
-            CRE WORKFLOWS
+            AUCTION LIFECYCLE
           </h2>
         </div>
         <p className="hidden md:block max-w-xs font-mono text-xs text-muted-foreground text-right leading-relaxed">
-          Three offchain workflows keep bid data private. Only commitments and settlement results touch the chain.
+          Three on-chain phases powered by Leo transitions and ZK proofs. Privacy until reveal, transparency after.
         </p>
       </div>
 
@@ -111,20 +111,20 @@ export function CreSection() {
               </code>
             </div>
 
-            {/* Offchain */}
+            {/* Private (ZK) */}
             <div>
               <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                Offchain (CRE)
+                Private (ZK)
               </span>
               <p className="mt-2 font-mono text-xs text-muted-foreground leading-relaxed">
-                {wf.offchain}
+                {wf.private}
               </p>
             </div>
 
-            {/* Onchain */}
+            {/* On-chain */}
             <div>
               <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-                Onchain
+                On-chain
               </span>
               <p className="mt-2 font-mono text-xs text-foreground/80 leading-relaxed">
                 {wf.onchain}
@@ -146,9 +146,9 @@ export function CreSection() {
           Key point
         </span>
         <p className="font-mono text-xs text-muted-foreground leading-relaxed">
-          Sensitive data (bid prices, amounts, identities, payout details) is handled only in CRE workflows.
-          The chain sees only commitments and the batched forward / settlement results.
-          In production, CRE + Confidential HTTP ensures API keys and bid data never appear onchain or in public logs.
+          During the active phase, bid amounts and identities are invisible — stored only as private ZK records in each bidder&apos;s wallet.
+          After the reveal deadline, bid amounts become public on-chain. Settlement is fully transparent and permissionless.
+          Non-revealers forfeit their escrow to the auction creator.
         </p>
       </div>
     </section>

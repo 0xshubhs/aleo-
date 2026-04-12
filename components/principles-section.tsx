@@ -16,19 +16,19 @@ export function PrinciplesSection() {
     {
       number: "01",
       titleParts: [
-        { text: "SEALED ", highlight: false },
-        { text: "BIDS", highlight: true },
+        { text: "ZERO ", highlight: false },
+        { text: "KNOWLEDGE", highlight: true },
       ],
-      description: "You sign your bid with EIP-712. Only a commitment is onchain; CRE stores and verifies the confidential message. No leakage to MEV or snipers until the auction closes.",
+      description: "Bids are private Aleo records encrypted to your wallet. BHP256 commitments bind bids on-chain without revealing amounts. No leakage to bots or snipers until you choose to reveal.",
       align: "left",
     },
     {
       number: "02",
       titleParts: [
         { text: "FAIR ", highlight: false },
-        { text: "DISCOVERY", highlight: true },
+        { text: "REVEAL", highlight: true },
       ],
-      description: "Continuous, onchain price discovery. Market-clearing outcome seeds liquidity.",
+      description: "After the deadline, all bidders reveal simultaneously. Highest bid wins. On-chain mappings update transparently so everyone can verify the outcome.",
       align: "right",
     },
     {
@@ -37,16 +37,16 @@ export function PrinciplesSection() {
         { text: "PRIVACY ", highlight: false },
         { text: "BY DESIGN", highlight: true },
       ],
-      description: "Chainlink CRE and confidential EIP-712 messages. Bid data stays offchain; CRE workflow finalizes and forwards. Cryptographic confidentiality, onchain enforceability.",
+      description: "Built natively on Aleo's ZK record model. Private inputs never touch public state. Leo transitions enforce rules with zero-knowledge proofs — cryptographic privacy, on-chain enforceability.",
       align: "left",
     },
     {
       number: "04",
       titleParts: [
         { text: "EQUITABLE ", highlight: false },
-        { text: "LAUNCHES", highlight: true },
+        { text: "AUCTIONS", highlight: true },
       ],
-      description: "More equitable token launch experience. Built on Uniswap's CCA, extended with CRE for privacy.",
+      description: "No insider advantage. Uniform escrow hides bid magnitude. Pull-based claims ensure everyone gets their fair share. Built on Aleo for programmable privacy.",
       align: "right",
     },
   ]
@@ -94,7 +94,7 @@ export function PrinciplesSection() {
       {/* Section header */}
       <div ref={headerRef} className="mb-24">
         <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">04 / Principles</span>
-        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">BLINDPOOL VALUES</h2>
+        <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">SILENTBID VALUES</h2>
       </div>
 
       {/* Staggered principles */}

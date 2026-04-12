@@ -56,11 +56,11 @@ export function HeroSection() {
         </SplitFlapAudioProvider>
 
         <h2 className="font-[var(--font-bebas)] text-muted-foreground/60 text-[clamp(1rem,3vw,2rem)] mt-4 tracking-wide">
-          Privacy-Focused CCA & Sealed-Bid Token Launches
+          Zero-Knowledge Sealed-Bid Auctions on Aleo
         </h2>
 
         <p className="mt-12 max-w-md font-mono text-sm text-muted-foreground leading-relaxed">
-          A fork of Uniswap&apos;s Continuous Clearing Auction with sealed-bid confidentiality. You sign your bid with EIP-712; only a commitment goes onchain. Chainlink CRE stores and verifies the confidential message offchain, then finalizes and forwards bids after the blind deadline. No MEV sniping, fair onchain price discovery.
+          Privacy-preserving sealed-bid auctions powered by Aleo&apos;s zero-knowledge proofs. Bids are private ZK records — only a BHP256 commitment is stored on-chain. Every bidder escrows the same max amount in test USDC, so public transfers reveal nothing about your real bid. After the deadline, reveal to compete. Fair, MEV-resistant, fully on-chain.
         </p>
 
         <div className="mt-16 flex items-center gap-8">
@@ -83,7 +83,7 @@ export function HeroSection() {
       {/* Floating info tag */}
       <div className="absolute bottom-8 right-8 md:bottom-12 md:right-12">
         <div className="border border-border px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          v.01 / CCA + CRE + EIP-712
+          v.02 / Aleo ZK + Leo + BHP256
         </div>
       </div>
     </section>

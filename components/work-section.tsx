@@ -9,39 +9,39 @@ gsap.registerPlugin(ScrollTrigger)
 
 const experiments = [
   {
-    title: "Sealed-Bid CCA",
+    title: "ZK Sealed Bids",
     medium: "Core Mechanism",
-    description: "Chainlink CRE orchestrates sealed bids. You sign with EIP-712; only the commitment is onchain. CRE verifies and stores the confidential message, then finalizes and forwards after the blind deadline.",
+    description: "Place bids as private Aleo records. A BHP256 commitment is stored on-chain, but your bid amount and identity stay encrypted. Only you can decrypt your bid record using your wallet.",
     span: "col-span-2 row-span-2",
   },
   {
-    title: "Price Discovery",
-    medium: "Continuous Auction",
-    description: "Bids integrate over time to determine a fair market-clearing price onchain.",
+    title: "Commit-Reveal",
+    medium: "Auction Lifecycle",
+    description: "Active phase for sealed bids, reveal phase to open them, then settlement. Three distinct on-chain phases enforced by block height.",
     span: "col-span-1 row-span-1",
   },
   {
     title: "No MEV Leak",
     medium: "Privacy Layer",
-    description: "Bid price and amount stay in CRE; only the hash is onchain. Bots and MEV cannot see your bid before close.",
+    description: "Every bidder escrows the same max_bid amount. Public USDC transfers reveal nothing about real bid magnitude until the reveal phase.",
     span: "col-span-1 row-span-2",
   },
   {
-    title: "Pool Seeding",
-    medium: "Liquidity",
-    description: "Auction outcome seeds a Uniswap pool. Permissionless, onchain.",
+    title: "USDC Escrow",
+    medium: "Test Token",
+    description: "Bids escrowed in silentbid_usdc.aleo. Winners pay, losers get refunds, overpay returned — all on-chain.",
     span: "col-span-1 row-span-1",
   },
   {
-    title: "CRE + EIP-712",
-    medium: "Confidential Messages",
-    description: "Chainlink CRE and EIP-712 signed bids. Confidential HTTP keeps request/response private; CRE workflow enforces fairness and settlement.",
+    title: "Leo + BHP256",
+    medium: "ZK Smart Contracts",
+    description: "Auction logic in Leo, compiled to Aleo instructions. BHP256 hash commitments bind bids cryptographically. ZK proofs verify without revealing private inputs.",
     span: "col-span-2 row-span-1",
   },
   {
-    title: "Equitable Launches",
-    medium: "Fair Access",
-    description: "More equitable token launch experience for all participants.",
+    title: "Fair Auctions",
+    medium: "Equitable Access",
+    description: "No insider advantage. All bids sealed until deadline. Transparent reveal and settlement, enforced by zero-knowledge proofs.",
     span: "col-span-1 row-span-1",
   },
 ]
@@ -102,7 +102,7 @@ export function WorkSection() {
           <h2 className="mt-4 font-[var(--font-bebas)] text-5xl md:text-7xl tracking-tight">HOW IT WORKS</h2>
         </div>
         <p className="hidden md:block max-w-xs font-mono text-xs text-muted-foreground text-right leading-relaxed">
-          EIP-712 signed bids, CRE workflows, and commitment-onchain. Privacy-first token launches.
+          ZK records, BHP256 commitments, Leo transitions. Privacy-first sealed-bid auctions on Aleo.
         </p>
       </div>
 

@@ -526,6 +526,7 @@ export default function AuctionDetailPage() {
           Latest bids
         </h2>
         <LatestBids
+          auctionId={auctionId}
           bidCount={bidCount}
           highestBid={highestBid}
           highestBidder={highestBidder}
