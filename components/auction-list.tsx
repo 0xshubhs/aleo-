@@ -13,6 +13,7 @@ import {
   fetchHighestBid,
   getAuctionStatus,
   formatCredits,
+  discoverAllAuctionIds,
 } from "@/lib/silentbid"
 
 const CACHE_TTL = 30_000
@@ -41,11 +42,22 @@ async function getLatestHeight() {
   return mod.getLatestHeight()
 }
 
+function normalizeAuctionId(input: string): string | null {
+  const trimmed = input.trim()
+  if (!trimmed) return null
+  if (/^\d+field$/.test(trimmed)) return trimmed
+  if (/^\d+$/.test(trimmed)) return `${trimmed}field`
+  return null
+}
+
 export function AuctionList({ filter }: { filter?: AuctionStatus }) {
   const [auctions, setAuctions] = useState<AuctionWithMeta[]>([])
   const [currentBlock, setCurrentBlock] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [addIdInput, setAddIdInput] = useState("")
+  const [addError, setAddError] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
   const lastFetchRef = useRef<number>(0)
   const fetchingRef = useRef(false)
 
@@ -56,31 +68,57 @@ export function AuctionList({ filter }: { filter?: AuctionStatus }) {
     try {
       if (!isBackground) setLoading(true)
 
-      const [height, count] = await Promise.all([getLatestHeight(), fetchAuctionCount()])
+      const height = await getLatestHeight()
       setCurrentBlock(height)
 
-      // Load tracked auction IDs from localStorage
-      const storedIds: string[] = JSON.parse(localStorage.getItem("silentbid_auction_ids") || "[]")
-      const results: AuctionWithMeta[] = []
+      // Strategy 1: Try on-chain discovery via auction_ids mapping (v3+)
+      // This iterates 0..auction_counter reading auction_ids[i] for each index.
+      let auctionIds = await discoverAllAuctionIds()
 
-      for (const id of storedIds) {
-        try {
-          const [info, bidCount, highestBid] = await Promise.all([
-            fetchAuctionInfo(id), fetchBidCount(id), fetchHighestBid(id),
-          ])
-          if (info) {
-            const s = getAuctionStatus(info, height)
-            const listStatus: AuctionStatus =
-              s === "active" ? "active" : "ended"
-            results.push({
-              ...info,
-              bid_count: bidCount,
-              highest_bid: highestBid,
-              status: listStatus,
-            })
+      // Strategy 2: Merge with localStorage for backwards compat (v2 auctions)
+      const storedIds: string[] = JSON.parse(localStorage.getItem("silentbid_auction_ids") || "[]")
+      const allIds = [...new Set([...auctionIds, ...storedIds])]
+
+      // Strategy 3: Also try server registry as fallback for v2 auctions
+      try {
+        const registryRes = await fetch("/api/auctions", { cache: "no-store" })
+        if (registryRes.ok) {
+          const data = await registryRes.json() as {
+            auctions: Array<{ auction_id: string }>
           }
-        } catch { /* skip */ }
+          const registryIds = (data.auctions ?? []).map((a) => a.auction_id)
+          for (const id of registryIds) {
+            if (!allIds.includes(id)) allIds.push(id)
+          }
+        }
+      } catch { /* registry unavailable, that's ok */ }
+
+      // Fetch on-chain data for all discovered IDs
+      const results: AuctionWithMeta[] = []
+      // Batch in groups of 5 to respect API rate limits
+      for (let i = 0; i < allIds.length; i += 5) {
+        const batch = allIds.slice(i, i + 5)
+        const enriched = await Promise.all(
+          batch.map(async (id) => {
+            try {
+              const [info, bidCount, highestBid] = await Promise.all([
+                fetchAuctionInfo(id), fetchBidCount(id), fetchHighestBid(id),
+              ])
+              if (!info) return null
+              const s = getAuctionStatus(info, height)
+              const listStatus: AuctionStatus = s === "active" ? "active" : "ended"
+              return { ...info, bid_count: bidCount, highest_bid: highestBid, status: listStatus } as AuctionWithMeta
+            } catch { return null }
+          }),
+        )
+        for (const a of enriched) {
+          if (a) results.push(a)
+        }
       }
+
+      // Sync all found IDs back to localStorage
+      const foundIds = results.map((r) => r.auction_id)
+      localStorage.setItem("silentbid_auction_ids", JSON.stringify([...new Set(foundIds)]))
 
       setAuctions(results)
       setError(null)
@@ -95,6 +133,42 @@ export function AuctionList({ filter }: { filter?: AuctionStatus }) {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleAddById = useCallback(async () => {
+    setAddError(null)
+    const id = normalizeAuctionId(addIdInput)
+    if (!id) {
+      setAddError("Paste an auction id — a field value like 123…field.")
+      return
+    }
+    setAdding(true)
+    try {
+      const info = await fetchAuctionInfo(id)
+      if (!info) {
+        setAddError("No auction found on-chain for that id.")
+        return
+      }
+      const stored: string[] = JSON.parse(
+        localStorage.getItem("silentbid_auction_ids") || "[]",
+      )
+      if (!stored.includes(id)) {
+        stored.push(id)
+        localStorage.setItem("silentbid_auction_ids", JSON.stringify(stored))
+      }
+      // Also register with server-side registry
+      fetch("/api/auctions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      }).catch(() => {})
+      setAddIdInput("")
+      await fetchAuctions(false)
+    } catch (e) {
+      setAddError(e instanceof Error ? e.message : "Failed to load auction.")
+    } finally {
+      setAdding(false)
+    }
+  }, [addIdInput, fetchAuctions])
+
   useEffect(() => { fetchAuctions(false) }, [fetchAuctions])
 
   useEffect(() => {
@@ -108,43 +182,91 @@ export function AuctionList({ filter }: { filter?: AuctionStatus }) {
     ? auctions.filter((a) => a.status === filter)
     : [...auctions].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
 
+  const addByIdPanel = (
+    <div className="mb-6 border border-border/40 p-4 md:p-5">
+      <span className="block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+        Add auction by ID
+      </span>
+      <p className="mt-1 font-mono text-[10px] text-muted-foreground/60">
+        Auctions are auto-discovered from on-chain. You can also manually add one by ID.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <input
+          type="text"
+          value={addIdInput}
+          onChange={(e) => setAddIdInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleAddById() }}
+          placeholder="123…field"
+          className={cn(
+            "flex-1 min-w-[260px] border border-border bg-input/50 px-3 py-2 font-mono text-xs",
+            "placeholder:text-muted-foreground/40 focus:outline-none focus:border-accent",
+          )}
+        />
+        <button
+          type="button"
+          onClick={handleAddById}
+          disabled={adding}
+          className={cn(
+            "border border-accent px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-accent",
+            "hover:bg-accent hover:text-accent-foreground transition-all duration-200 disabled:opacity-40",
+          )}
+        >
+          {adding ? "Loading…" : "Add"}
+        </button>
+      </div>
+      {addError && (
+        <p className="mt-2 font-mono text-[10px] text-destructive break-all">{addError}</p>
+      )}
+    </div>
+  )
+
   if (loading) {
     return (
-      <div className="border border-border/40 p-12 text-center">
-        <p className="font-mono text-sm text-muted-foreground animate-pulse">
-          Loading auctions from {networkName}...
-        </p>
-      </div>
+      <>
+        {addByIdPanel}
+        <div className="border border-border/40 p-12 text-center">
+          <p className="font-mono text-sm text-muted-foreground animate-pulse">
+            Loading auctions from {networkName}...
+          </p>
+        </div>
+      </>
     )
   }
 
   if (error) {
     return (
-      <div className="border border-destructive/50 bg-destructive/10 p-6">
-        <p className="font-mono text-sm text-destructive">{error}</p>
-      </div>
+      <>
+        {addByIdPanel}
+        <div className="border border-destructive/50 bg-destructive/10 p-6">
+          <p className="font-mono text-sm text-destructive">{error}</p>
+        </div>
+      </>
     )
   }
 
   if (filtered.length === 0) {
     return (
-      <div className="border border-border/40 p-12 md:p-16 text-center">
-        <p className="font-mono text-sm text-muted-foreground">
-          {filter
-            ? `No ${statusLabel(filter).toLowerCase()} auctions right now.`
-            : `No auctions found on ${networkName}. Create one or add by ID.`}
-        </p>
-        {filter && (
-          <Link href="/auctions" className="mt-4 inline-block font-mono text-xs uppercase tracking-widest text-accent hover:underline">
-            View all
-          </Link>
-        )}
-      </div>
+      <>
+        {addByIdPanel}
+        <div className="border border-border/40 p-12 md:p-16 text-center">
+          <p className="font-mono text-sm text-muted-foreground">
+            {filter
+              ? `No ${statusLabel(filter).toLowerCase()} auctions right now.`
+              : `No auctions found on ${networkName}. Create one or add by ID above.`}
+          </p>
+          {filter && (
+            <Link href="/auctions" className="mt-4 inline-block font-mono text-xs uppercase tracking-widest text-accent hover:underline">
+              View all
+            </Link>
+          )}
+        </div>
+      </>
     )
   }
 
   return (
     <>
+      {addByIdPanel}
       <span className="mb-4 block font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
         {filtered.length} auction{filtered.length !== 1 ? "s" : ""} on {networkName}
       </span>

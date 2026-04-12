@@ -126,6 +126,48 @@ export async function getLatestHeight(): Promise<number> {
   }
 }
 
+export interface AleoTransactionRaw {
+  type?: string;
+  id?: string;
+  execution?: {
+    transitions?: Array<{
+      id?: string;
+      program?: string;
+      function?: string;
+      outputs?: Array<{ type?: string; value?: string; [k: string]: unknown }>;
+      [k: string]: unknown;
+    }>;
+  };
+  [k: string]: unknown;
+}
+
+// Fetches a confirmed transaction. Returns null while the tx is still pending.
+export async function getTransaction(txId: string): Promise<AleoTransactionRaw | null> {
+  const res = await fetch(`${BASE}/transaction/${encodeURIComponent(txId)}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  try {
+    return (await res.json()) as AleoTransactionRaw;
+  } catch {
+    return null;
+  }
+}
+
+// Resolves a transition id (au1...) to its parent transaction id (at1...).
+export async function findTransactionIdByTransition(transitionId: string): Promise<string | null> {
+  const res = await fetch(
+    `${BASE}/find/transactionID/${encodeURIComponent(transitionId)}`,
+    { headers: { Accept: "application/json" }, cache: "no-store" },
+  );
+  if (!res.ok) return null;
+  const text = (await res.text()).trim();
+  if (!text) return null;
+  const stripped = text.replace(/^"|"$/g, "");
+  return stripped.startsWith("at1") ? stripped : null;
+}
+
 export async function getBlockByHeight(height: number): Promise<AleoBlock> {
   try {
     const block = await getClient().getBlock(height);
