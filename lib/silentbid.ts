@@ -77,6 +77,33 @@ export async function fetchAuctionCount(): Promise<number> {
   return parseInt(raw.replace(/u64$/, ""), 10) || 0;
 }
 
+/** Fetch auction_id at a given index (v3 auction_ids mapping). */
+export async function fetchAuctionIdByIndex(index: number): Promise<string | null> {
+  const raw = await getMappingValue(SILENTBID_PROGRAM_ID, "auction_ids", `${index}u64`);
+  if (!raw || raw === "null") return null;
+  return raw.trim().replace(/^"|"$/g, "");
+}
+
+/**
+ * Discover all auction IDs by iterating 0..auction_counter using the
+ * auction_ids mapping (v3+). Returns empty array if mapping doesn't exist.
+ */
+export async function discoverAllAuctionIds(): Promise<string[]> {
+  const count = await fetchAuctionCount();
+  if (count === 0) return [];
+
+  const ids: string[] = [];
+  // Fetch in parallel batches of 5 to respect rate limits
+  for (let i = 0; i < count; i += 5) {
+    const batch = Array.from({ length: Math.min(5, count - i) }, (_, j) => i + j);
+    const results = await Promise.all(batch.map(fetchAuctionIdByIndex));
+    for (const id of results) {
+      if (id) ids.push(id);
+    }
+  }
+  return ids;
+}
+
 /** USDC balance of an arbitrary address (caller, program escrow, etc). */
 export async function fetchUsdcBalance(address: string): Promise<number> {
   const raw = await getMappingValue(SILENTBID_USDC_PROGRAM_ID, "balances", address);

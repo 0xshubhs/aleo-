@@ -33,6 +33,38 @@ const GRACE_OPTIONS = [
 
 type Step = "form" | "submitting" | "done"
 
+// Poll the explorer until the create_auction tx is confirmed, then pull
+// auction_id out of the finalize future's first argument.
+async function resolveAuctionIdFromTx(submittedId: string): Promise<string | null> {
+  if (!submittedId || submittedId === "pending") return null
+  const mod = await import("@/lib/aleo-client")
+
+  let txId: string | null = submittedId
+  // Leo Wallet may return a transition id (au1...) instead of a tx id (at1...).
+  if (submittedId.startsWith("au1")) {
+    for (let i = 0; i < 40; i++) {
+      txId = await mod.findTransactionIdByTransition(submittedId)
+      if (txId) break
+      await new Promise((r) => setTimeout(r, 3000))
+    }
+  }
+  if (!txId) return null
+
+  for (let i = 0; i < 40; i++) {
+    const tx = await mod.getTransaction(txId)
+    const transitions = tx?.execution?.transitions ?? []
+    const t = transitions.find((x) => x?.function === "create_auction") ?? transitions[0]
+    const future = t?.outputs?.find((o) => o?.type === "future")
+    const value = typeof future?.value === "string" ? future.value : null
+    if (value) {
+      const m = value.match(/arguments:\s*\[\s*(\d+field)/)
+      if (m) return m[1]
+    }
+    await new Promise((r) => setTimeout(r, 3000))
+  }
+  return null
+}
+
 export function CreateAuctionForm() {
   const router = useRouter()
   const { address, executeTransaction } = useWallet()
@@ -81,29 +113,39 @@ export function CreateAuctionForm() {
         `${graceBlocks}u32`,
       ]
 
-      const result = await executeTransaction({
-        program: SILENTBID_PROGRAM_ID,
-        function: "create_auction",
-        inputs,
-        fee: SILENTBID_FEE,
-      })
+      // Leo Wallet sometimes broadcasts successfully but never resolves its
+      // requestTransaction Promise, leaving the dapp hanging forever. Race
+      // executeTransaction against a 3-minute timeout so the UI can recover.
+      const WALLET_TIMEOUT_MS = 180_000
+      const result = await Promise.race<unknown>([
+        executeTransaction({
+          program: SILENTBID_PROGRAM_ID,
+          function: "create_auction",
+          inputs,
+          fee: SILENTBID_FEE,
+        }),
+        new Promise((_, rej) =>
+          setTimeout(
+            () => rej(new Error("WALLET_TIMEOUT")),
+            WALLET_TIMEOUT_MS,
+          ),
+        ),
+      ])
 
       const resultUnknown = result as unknown as {
         transactionId?: string
-        outputs?: unknown[]
       }
-      setTxId(resultUnknown.transactionId || "pending")
+      const submittedId = resultUnknown.transactionId || "pending"
+      setTxId(submittedId)
 
-      // Best-effort: if the wallet returned outputs, try to extract auction_id
-      // from the first (receipt) record so we can deep-link to it after confirmation.
-      let extracted: string | null = null
-      const outs = resultUnknown.outputs
-      if (Array.isArray(outs) && outs.length > 0) {
-        const rec = outs[0]
-        const str = typeof rec === "string" ? rec : JSON.stringify(rec)
-        const m = str.match(/auction_id[:\s]+(\d+field)/)
-        if (m) extracted = m[1]
-      }
+      // Leo/Shield wallets only return { transactionId }. To get auction_id, poll
+      // the explorer for the confirmed tx and read the first finalize argument.
+      // Cap the whole lookup at 90s so the UI never hangs — user can still
+      // paste the id manually via the Add-by-ID input on the auctions page.
+      const extracted = await Promise.race<string | null>([
+        resolveAuctionIdFromTx(submittedId),
+        new Promise<null>((res) => setTimeout(() => res(null), 90_000)),
+      ])
       if (extracted) {
         setNewAuctionId(extracted)
         try {
@@ -116,6 +158,12 @@ export function CreateAuctionForm() {
               localStorage.setItem("silentbid_auction_ids", JSON.stringify(stored))
             }
           }
+          // Register with server-side registry so all users can discover it
+          fetch("/api/auctions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: extracted }),
+          }).catch(() => {})
         } catch {
           /* ignore */
         }
@@ -123,6 +171,15 @@ export function CreateAuctionForm() {
 
       setStep("done")
     } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      if (msg === "WALLET_TIMEOUT") {
+        // Wallet may have broadcast the tx but silently dropped the promise.
+        // Move to done so the user can check their wallet activity and paste
+        // the auction_id manually via Add-by-ID on the auctions page.
+        setTxId("unknown")
+        setStep("done")
+        return
+      }
       setError(getWalletErrorMessage(e))
       setStep("form")
     }
